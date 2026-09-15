@@ -11,10 +11,11 @@ sha256 でその archive を固定しており、.NET SDK は不要です。
 
 ## Install
 
-Homebrew 6.0 以降は、明示的に trust していない第三者 tap を読み込みません。最初に一度この tap を trust します:
+Homebrew 6.0 以降は、明示的に trust していない第三者 tap を読み込みません。最初に一度この tap を追加して trust します:
 
 ```bash
-brew tap --trust kkamegawa/tap
+brew tap kkamegawa/tap
+brew trust --tap kkamegawa/tap
 brew install relaypublisher
 ```
 

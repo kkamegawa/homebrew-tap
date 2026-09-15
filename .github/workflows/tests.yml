@@ -1,5 +1,6 @@
 # Based on the workflow `brew tap-new` generates. Runs on Apple silicon because the formula only
-# supports arm64, and adds checks for what matters to a pre-built, unsigned single-file app:
+# supports arm64, and adds checks for what matters to a pre-built single-file app that carries only
+# an ad-hoc signature (no Developer ID, no notarization):
 # a valid ad-hoc code signature and a CLI that actually starts.
 name: brew test-bot
 

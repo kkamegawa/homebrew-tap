@@ -11,11 +11,12 @@ The Japanese translation is available in [README_ja.md](README_ja.md).
 
 ## Install
 
-Homebrew 6.0 and later refuse to load a third-party tap until it is explicitly trusted, so trust this
-tap once first:
+Homebrew 6.0 and later refuse to load a third-party tap until it is explicitly trusted, so add and
+trust this tap once first:
 
 ```bash
-brew tap --trust kkamegawa/tap
+brew tap kkamegawa/tap
+brew trust --tap kkamegawa/tap
 brew install relaypublisher
 ```
 
