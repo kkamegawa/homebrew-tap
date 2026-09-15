@@ -1,0 +1,60 @@
+# Based on the workflow `brew tap-new` generates. Runs on Apple silicon because the formula only
+# supports arm64, and adds checks for what matters to a pre-built, unsigned single-file app:
+# a valid ad-hoc code signature and a CLI that actually starts.
+name: brew test-bot
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash -xeuo pipefail {0}
+
+jobs:
+  test-bot:
+    runs-on: macos-26
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@1e34f2e2acaa766b7efacb8c26352e6abbb023f9 # 2026.09.13.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Homebrew Bundler RubyGems
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+          key: ${{ runner.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+          restore-keys: ${{ runner.os }}-rubygems-
+
+      - run: brew test-bot --only-cleanup-before
+
+      - run: brew test-bot --only-setup
+
+      - run: brew test-bot --only-tap-syntax
+
+      - run: brew test-bot --only-formulae
+        if: github.event_name == 'pull_request'
+
+      # The release is built on Linux; the .NET SDK ad-hoc signs it there. Apple silicon refuses to
+      # run arm64 code without a valid signature, so check it on every change to the formula.
+      - name: Verify the installed binary
+        run: |
+          TAP="${GITHUB_REPOSITORY_OWNER}/tap"
+          brew install "${TAP}/relaypublisher"
+          BINARY="$(brew --prefix relaypublisher)/bin/relaypublisher"
+          file "$BINARY"
+          codesign --verify --strict --verbose=2 "$BINARY"
+          VERSION="$(brew info --json=v2 "${TAP}/relaypublisher" | jq -r '.formulae[0].versions.stable')"
+          "$BINARY" --version | grep -F "$VERSION"
+          brew test "${TAP}/relaypublisher"
